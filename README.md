@@ -18,7 +18,11 @@
 
 **BTC-Module** is the Bitcoin wallet engine that powers [Swapso Wallet](https://swapso.io). It handles HD wallet creation, transaction signing, and mnemonic encryption for both managed ("newbie") and self-custody ("pro") modes.
 
-### What it does
+This module provides developers with robust tools for:
+- **HD Wallet Creation** - Generate secure Bitcoin wallets using BIP32/BIP39 mnemonic phrases
+- **Transaction Management** - Build, sign, and broadcast Bitcoin transactions
+- **Key Security** - Enterprise-grade encryption with AWS KMS support
+
 
 - **HD Wallet** — BIP32/BIP39 compliant, deriving Native SegWit (P2WPKH / `bc1q...`) addresses on path `m/84'/0'/0'/0` (mainnet) or `m/84'/1'/0'/0` (testnet)
 - **PSBT Transactions** — Builds, signs, and broadcasts Partially Signed Bitcoin Transactions with weight-based fee estimation and optimal UTXO selection
