@@ -13,7 +13,11 @@ import * as helpers from "./helper/index";
 
 import { bitcoin, bitcoin_network, BitcoinNetworkName } from "./config/index";
 
+// Export TransactionVisualizer
+export { TransactionVisualizer } from "./helper/transactionVisualizer";
+
 const { HD_PATH_MAINNET, HD_PATH_TESTNET } = bitcoin;
+
 const { MAINNET, TESTNET } = bitcoin_network;
 
 export class KeyringController {

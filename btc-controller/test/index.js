@@ -1,4 +1,5 @@
 var assert = require('assert');
+const nock = require('nock'); // Import nock
 const bitcoinMessage = require('bitcoinjs-message')
 const { KeyringController: Bitcoin, getBalance } = require('../src/index')
 const {
@@ -37,6 +38,64 @@ const opts = {
 
 describe('Initialize wallet ', () => {
     const bitcoinWallet = new Bitcoin(opts)
+
+    // Mock API responses before each test
+    beforeEach(() => {
+        // Mock network-info
+        nock('https://app.swapso.io')
+            .get('/api/bitcoin/network-info')
+            .query(true) // match any query params
+            .reply(200, {
+                data: {
+                    mempool: {
+                        blocks: [
+                            { median_fee_rate: 15 }, // fast
+                            { median_fee_rate: 10 }, // standard
+                            { median_fee_rate: 5 }   // slow
+                        ]
+                    }
+                }
+            });
+
+        // Mock unspent outputs
+        nock('https://app.swapso.io')
+            .get('/api/bitcoin/unspent')
+            .query(true)
+            .reply(200, {
+                data: {
+                    outputs: [
+                        {
+                            value: 0.001,
+                            script: '76a914...',
+                            tx_hex: '...',
+                            hash: 'txid...',
+                            index: 0
+                        }
+                    ]
+                }
+            });
+            
+        // Mock balance
+        nock('https://app.swapso.io')
+            .get('/api/bitcoin/balance')
+            .query(true)
+            .reply(200, {
+                data: {
+                    confirmed: 0.001
+                }
+            });
+            
+        // Mock send-transaction
+        nock('https://app.swapso.io')
+            .post('/api/bitcoin/send-transaction')
+            .reply(200, {
+                hash: 'mock_tx_hash'
+            });
+    });
+
+    afterEach(() => {
+        nock.cleanAll();
+    });
 
     it("Should generate new address ", async () => {
         const wallet = await bitcoinWallet.addAccount()

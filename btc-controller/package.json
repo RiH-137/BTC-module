@@ -4,7 +4,7 @@
   "description": "Enterprise-grade Bitcoin wallet infrastructure",
   "main": "src/index.ts",
   "scripts": {
-    "test": "mocha -r ts-node/register --timeout 15000 test/index.js",
+    "test": "mocha -r ts-node/register --timeout 15000 test/*.js",
     "build": "tsc"
   },
   "dependencies": {
@@ -22,6 +22,7 @@
     "@types/mocha": "^10.0.6",
     "@types/node": "^20.11.0",
     "mocha": "^10.2.0",
+    "nock": "^14.0.11",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   }
