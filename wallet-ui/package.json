@@ -21,9 +21,8 @@
     "satoshi-bitcoin": "^1.0.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "uuid": "^9.0.0"
-  },
-  "devDependencies": {
-    "cross-env": "^10.1.0"
+
+    "uuid": "^13.0.0"
+
   }
 }
