@@ -1,6 +1,7 @@
 import axios from "axios";
 import sb from "satoshi-bitcoin";
 import { BitcoinNetworkName } from "../config";
+import { FeeEstimator, FeeRatePriority } from "./utils/feeEstimator";
 
 export async function getTransactionSize(
   address: string,
@@ -43,15 +44,34 @@ export async function getTransactionSize(
   return { transactionSize, totalAmountAvailable, inputs };
 }
 
+/**
+ * Calculate the recommended fee and collect UTXO inputs for a transaction.
+ *
+ * When `satPerByte` is omitted (or `undefined`) the fee rate is fetched from
+ * the mempool.space API via `FeeEstimator.getFeeRate()`, which applies retry
+ * logic and falls back to a static rate if the network is unavailable.
+ *
+ * @param address    Sender's Bitcoin address (used to look up UTXOs)
+ * @param network    "MAINNET" | "TESTNET"
+ * @param satPerByte Explicit fee rate in sat/vByte.  Omit to auto-estimate.
+ * @param priority   Fee priority tier used when auto-estimating (default: "halfHour")
+ */
 export async function getFeeAndInput(
   address: string,
   network: BitcoinNetworkName,
-  satPerByte: number
+  satPerByte?: number,
+  priority: FeeRatePriority = "halfHour"
 ) {
   const { transactionSize, totalAmountAvailable, inputs } =
     await getTransactionSize(address, network);
-  let fee = 0;
-  // Round up so we never underpay with fractional sat/byte rates
-  fee = Math.ceil(transactionSize * satPerByte);
+
+  // Use the caller-supplied rate when provided; otherwise fetch from the API.
+  const effectiveRate =
+    satPerByte != null
+      ? satPerByte
+      : await FeeEstimator.getFeeRate(network, priority);
+
+  // Round up so we never underpay with fractional sat/vByte rates
+  const fee = Math.ceil(transactionSize * effectiveRate);
   return { totalAmountAvailable, inputs, fee, transactionSize };
 }
