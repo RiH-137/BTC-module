@@ -60,6 +60,28 @@ describe('createMultiSigAddress', () => {
     assert.ok(result.address.startsWith('2'));
   });
 
+  it('creates a P2WSH (native SegWit) 2-of-3 multisig address', () => {
+    const result = createMultiSigAddress({
+      publicKeys,
+      requiredSignatures: 2,
+      network,
+      type: 'P2WSH',
+    });
+
+    const p2ms = bitcoinjs.payments.p2ms({
+      m: 2,
+      pubkeys: publicKeys.map((k) => Buffer.from(k, 'hex')),
+      network,
+    });
+    const expected = bitcoinjs.payments.p2wsh({ redeem: p2ms, network }).address;
+
+    assert.strictEqual(result.address, expected);
+    assert.strictEqual(result.type, 'P2WSH');
+    assert.strictEqual(result.redeemScript, undefined);
+    assert.ok(result.witnessScript);
+    assert.ok(result.address.startsWith('tb1'));
+  });
+
   it('throws when requiredSignatures is greater than key count', () => {
     assert.throws(() => {
       createMultiSigAddress({
