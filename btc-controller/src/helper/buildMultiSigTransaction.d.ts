@@ -23,6 +23,7 @@ export interface BuildMultiSigTransactionOptions {
 export interface BuildMultiSigTransactionResult {
     psbt: bitcoin.Psbt;
     psbtBase64: string;
+    selectedUTXOs: MultiSigInputUTXO[];
     inputCount: number;
     outputCount: number;
     totalInputValue: number;

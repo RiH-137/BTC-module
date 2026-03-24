@@ -27,11 +27,40 @@ export interface BuildMultiSigTransactionOptions {
 export interface BuildMultiSigTransactionResult {
   psbt: bitcoin.Psbt;
   psbtBase64: string;
+  selectedUTXOs: MultiSigInputUTXO[];
   inputCount: number;
   outputCount: number;
   totalInputValue: number;
   totalOutputValue: number;
   changeAmount: number;
+}
+
+interface SelectedUtxoSet {
+  selectedUTXOs: MultiSigInputUTXO[];
+  totalInputValue: number;
+}
+
+function selectMultiSigUTXOs(
+  utxos: MultiSigInputUTXO[],
+  targetAmount: number
+): SelectedUtxoSet {
+  const sorted = [...utxos].sort((a, b) => b.value - a.value);
+  const selectedUTXOs: MultiSigInputUTXO[] = [];
+  let totalInputValue = 0;
+
+  for (const utxo of sorted) {
+    selectedUTXOs.push(utxo);
+    totalInputValue += utxo.value;
+
+    if (totalInputValue >= targetAmount) {
+      return {
+        selectedUTXOs,
+        totalInputValue,
+      };
+    }
+  }
+
+  throw new Error("Insufficient funds for selected outputs and fee");
 }
 
 export function buildMultiSigTransaction(
@@ -59,9 +88,14 @@ export function buildMultiSigTransaction(
     throw new Error("At least one output is required to build a multisig transaction");
   }
 
+  const totalOutputValue = outputs.reduce((sum, output) => sum + output.value, 0);
+  const targetAmount = totalOutputValue + feeInSats;
+
+  const { selectedUTXOs, totalInputValue } = selectMultiSigUTXOs(utxos, targetAmount);
+
   const psbt = new bitcoin.Psbt({ network });
 
-  utxos.forEach((utxo) => {
+  selectedUTXOs.forEach((utxo) => {
     const input: any = {
       hash: utxo.txid,
       index: utxo.vout,
@@ -86,8 +120,6 @@ export function buildMultiSigTransaction(
     psbt.addOutput({ address: output.address, value: output.value });
   });
 
-  const totalInputValue = utxos.reduce((sum, utxo) => sum + utxo.value, 0);
-  const totalOutputValue = outputs.reduce((sum, output) => sum + output.value, 0);
   const changeAmount = totalInputValue - totalOutputValue - feeInSats;
 
   if (changeAmount < 0) {
@@ -102,7 +134,8 @@ export function buildMultiSigTransaction(
   return {
     psbt,
     psbtBase64: psbt.toBase64(),
-    inputCount: utxos.length,
+    selectedUTXOs,
+    inputCount: selectedUTXOs.length,
     outputCount: psbt.txOutputs.length,
     totalInputValue,
     totalOutputValue,
