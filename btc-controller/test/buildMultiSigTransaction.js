@@ -76,6 +76,33 @@ describe('buildMultiSigTransaction', () => {
     assert.strictEqual(result.feeInSats, 4000);
   });
 
+  it('adds witnessScript and redeemScript to PSBT input when provided', () => {
+    const witnessScript = '52210279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f817982102c6047f9441ed7d6d3045406e95c07cd85a57c8f86a57f2f6f2f1d36f5f8b16a752ae';
+    const redeemScript = '0020477f9f5e34f6157abf8552d7f4f63529cc06f659f8bc6ff6f4f16bcf4f3f7ed2';
+
+    const result = buildMultiSigTransaction({
+      network: TESTNET,
+      requiredSignatures: 2,
+      totalSigners: 3,
+      feeInSats: 500,
+      changeAddress: CHANGE,
+      utxos: [
+        {
+          ...makeUtxo('1', 12000),
+          witnessScript,
+          redeemScript,
+        },
+      ],
+      outputs: [{ address: RECIPIENT, value: 6000 }],
+    });
+
+    const firstInput = result.psbt.data.inputs[0];
+    assert.ok(firstInput.witnessScript);
+    assert.ok(firstInput.redeemScript);
+    assert.strictEqual(firstInput.witnessScript.toString('hex'), witnessScript);
+    assert.strictEqual(firstInput.redeemScript.toString('hex'), redeemScript);
+  });
+
   it('throws when output value is invalid', () => {
     assert.throws(
       () =>
