@@ -42,6 +42,14 @@ describe('buildMultiSigTransaction', () => {
     assert.strictEqual(result.psbt.txInputs.length, 2);
     assert.strictEqual(result.psbt.txOutputs.length, 2);
     assert.strictEqual(result.outputCount, 2);
+
+    const parsed = bitcoin.Psbt.fromBase64(result.psbtBase64, { network: TESTNET });
+    assert.strictEqual(parsed.txInputs.length, 2);
+    assert.strictEqual(parsed.txOutputs.length, 2);
+    assert.strictEqual(parsed.data.inputs[0].witnessUtxo.value, 8000);
+    assert.strictEqual(parsed.data.inputs[1].witnessUtxo.value, 7000);
+    assert.strictEqual(parsed.data.inputs[0].partialSig, undefined);
+    assert.strictEqual(parsed.data.inputs[1].partialSig, undefined);
   });
 
   it('estimates fee when feeRate is provided and feeInSats is omitted', () => {
