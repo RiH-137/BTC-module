@@ -1,5 +1,6 @@
 import * as bitcoin from "bitcoinjs-lib";
 import BitcoinTransactionSizeCalculator from "./utils/transactionSizeCalculator";
+import { serializePsbtToBase64 } from "./psbtSerialization";
 
 export interface MultiSigInputUTXO {
   txid: string;
@@ -217,7 +218,7 @@ export function buildMultiSigTransaction(
 
   return {
     psbt,
-    psbtBase64: psbt.toBase64(),
+    psbtBase64: serializePsbtToBase64(psbt),
     selectedUTXOs,
     inputCount: selectedUTXOs.length,
     outputCount: psbt.txOutputs.length,

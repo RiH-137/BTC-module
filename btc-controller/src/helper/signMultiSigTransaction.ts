@@ -1,5 +1,6 @@
 import * as bitcoin from "bitcoinjs-lib";
 import { ECPairInterface } from "ecpair";
+import { serializePsbtToBase64 } from "./psbtSerialization";
 
 export interface SignMultiSigTransactionOptions {
   network: bitcoin.networks.Network;
@@ -81,7 +82,7 @@ export function signMultiSigTransaction(
 
   return {
     psbt: resolvedPsbt,
-    psbtBase64: resolvedPsbt.toBase64(),
+    psbtBase64: serializePsbtToBase64(resolvedPsbt),
     signedInputIndexes: indexesToSign,
     signedInputCount: indexesToSign.length,
   };
